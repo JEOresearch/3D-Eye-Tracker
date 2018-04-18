@@ -394,9 +394,9 @@ int main(int argc, char *argv[]){
 						cv::line(img_rgb_debug, rr_eye.center, rr_pupil.center, cv::Vec3b(25, 22, 222), 3, CV_AA);
 
 						//update time, xdata, and ydata vectors for input into saccade detector
-						dataAdd(curr_circle.centre(0), 5, xData);
-						dataAdd(curr_circle.centre(1), 5, yData);
-						dataAdd(clock(), 5, timeData);
+						//dataAdd(curr_circle.centre(0), 5, xData);
+						//dataAdd(curr_circle.centre(1), 5, yData);
+						//dataAdd(clock(), 5, timeData);
 						float intensity = 0;
 						
 						//to-Unity write
