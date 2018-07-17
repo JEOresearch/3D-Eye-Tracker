@@ -1,0 +1,6 @@
+Instructions for Pupil Labs single USB cable support. 
+
+In Visual Studio:
+- Install Windows SDK 8.1 
+- Download and compile libusb
+- Download and compile libuvc
