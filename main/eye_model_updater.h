@@ -115,7 +115,8 @@ public:
 	singleeyefitter::EyeModelFitter::Sphere EyeModelUpdater::eyeModelFilter(
 		singleeyefitter::EyeModelFitter::Sphere eye, 
 		std::vector<singleeyefitter::EyeModelFitter::Sphere> &eyes,
-		int filterLength);
+		int filterLength,
+		bool ignoreNewEye);
 	int get_current_count();
 	int get_max_count();
 	void EyeModelUpdater::setEye(singleeyefitter::EyeModelFitter::Sphere eye);
