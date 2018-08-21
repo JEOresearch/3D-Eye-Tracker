@@ -367,11 +367,22 @@ singleeyefitter::EyeModelFitter::Sphere EyeModelUpdater::eyeModelFilter(
 	singleeyefitter::EyeModelFitter::Sphere eye, 
 	std::vector<singleeyefitter::EyeModelFitter::Sphere> &eyes, 
 	int filterLength, 
-	bool ignoreNewEye) {
+	bool ignoreNewEye,
+	singleeyefitter::EyeModelFitter::Sphere originalCalibratedEye) {
 		int max = filterLength; //max number of elements to average
 		double radiiAverage = 0;
 		singleeyefitter::EyeModelFitter::Sphere filteredEyeModel;
 		singleeyefitter::EyeModelFitter::Sphere eyeTemp(eye);
+
+		float filterFactor = 5;
+		//check to see if new eye model is way different than originals and ignore if so
+		if (std::abs(eye.centre.x() - originalCalibratedEye.centre.x()) > filterFactor ||
+			std::abs(eye.centre.x() - originalCalibratedEye.centre.x()) > filterFactor ||
+			std::abs(eye.centre.x() - originalCalibratedEye.centre.x()) > filterFactor) {
+			ignoreNewEye = true;
+		}
+
+
 		if (!ignoreNewEye) {
 			eyes.push_back(eyeTemp);//add the newest eye model to the vector 
 		}
