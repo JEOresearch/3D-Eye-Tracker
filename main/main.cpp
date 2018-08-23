@@ -251,8 +251,8 @@ int main(int argc, char *argv[]){
 	vector<float> xData; //corresponding x eye rotations for N frames
 	vector<float> yData; //corresponding y eye rotations for N frames
 	vector<float> intensityData; //holds average intensity of last N frames
-	vector<singleeyefitter::EyeModelFitter::Sphere> eyes0; //holds a vector of spheres for the eye model filter (cam 0)
-	vector<singleeyefitter::EyeModelFitter::Sphere> eyes1; //holds a vector of spheres for the eye model filter (cam 1)
+	vector<singleeyefitter::EyeModelFitter::Sphere> eyes[2]; //holds a vector of spheres for the eye model filter (cam 0)
+	//vector<singleeyefitter::EyeModelFitter::Sphere> eyes1; //holds a vector of spheres for the eye model filter (cam 1)
 	singleeyefitter::EyeModelFitter::Sphere lastGoodEyes[2];
 	singleeyefitter::EyeModelFitter::Sphere originalModels[2];
 	double eyeSizes[2] = { 0, 0 }; //stores radii to fix later
@@ -382,8 +382,6 @@ int main(int argc, char *argv[]){
 						// happens once when model is built for the first time, helps filter
 						originalModels[cam] = eye_model_updaters[cam]->getEye();
 					}
-
-
 				}
 			}
 			
@@ -411,8 +409,6 @@ int main(int argc, char *argv[]){
 						eye_model_updaters[cam]->render(img_rgb_debug, el, inlier_pts);
 						eye_model_updaters[cam]->set_fitter_max_count(120); //manually sets max count
 						//3D filtered eye model
-						
-
 						curr_circle = eye_model_updaters[cam]->unproject(img, el, inlier_pts);
 						// 3D pupil (relative to filtered eye model)
 						singleeyefitter::Ellipse2D<double> pupil_elTest(singleeyefitter::project(curr_circle, focal_length));
@@ -423,80 +419,21 @@ int main(int argc, char *argv[]){
 							ignoreNewEye = false; //ignore eyes with 0 or negative origins
 						}
 
-						if (cam == 0) {
-
-
-
+						if (eye_model_updaters[cam]->fitter().eye) { //ensure eye model exists
 							singleeyefitter::Sphere<double> tempCircle = 
-								eye_model_updaters[cam]->eyeModelFilter(eye_model_updaters[cam]->fitter().eye, eyes0, medianTotal, ignoreNewEye, originalModels[cam]);
-							if (eyes0.size() > 0 && eyes1.size() > 0) {
-								//double left[3] = { 
-								//	eye_model_updaters[cam]->fitter().eye.centre[0],
-								//	eye_model_updaters[cam]->fitter().eye.centre[1], 
-								//	eye_model_updaters[cam]->fitter().eye.centre[2] };
-								//double right[3] = { 
-								//	eye_model_updaters[cam]->fitter().eye.centre[0], 
-								//	eye_model_updaters[cam]->fitter().eye.centre[1], 
-								//	eye_model_updaters[cam]->fitter().eye.centre[2] };
-								//if (pupilFitter.getInterpupillaryDifference(left, right) > 5.5 &&
-								//	pupilFitter.getInterpupillaryDifference(left, right) < 7) {
-								//	medianCircle = tempCircle;
-								//}
-								//else {
-								//	medianCircle = tempCircle;
-								//}
+								eye_model_updaters[cam]->eyeModelFilter(eye_model_updaters[cam]->fitter().eye, eyes[cam], medianTotal, ignoreNewEye, originalModels[cam]);
+							if (eyes[cam].size() > 0) { //if eye array of eyes is > 0 pass filtered value on
 								medianCircle = tempCircle;
 							}
 							else {
-								medianCircle = lastGoodEyes[cam];
-							}
-							
-						}
-						else if (cam == 1) {
-							
-							//singleeyefitter::EyeModelFitter::Sphere filteredEyeModel;
-							//double left[3] = {
-							//	eye_model_updaters[cam]->fitter().eye.centre[0],
-							//	eye_model_updaters[cam]->fitter().eye.centre[1],
-							//	eye_model_updaters[cam]->fitter().eye.centre[2] };
-							//double right[3] = {
-							//	eye_model_updaters[cam]->fitter().eye.centre[0],
-							//	eye_model_updaters[cam]->fitter().eye.centre[1],
-							//	eye_model_updaters[cam]->fitter().eye.centre[2] };
-							//if (pupilFitter.getInterpupillaryDifference(left, right) > 5.5 &&
-							//	pupilFitter.getInterpupillaryDifference(left, right) < 6.9) {
-							//
-							//}
-
-
-							singleeyefitter::Sphere<double> tempCircle =
-								eye_model_updaters[cam]->eyeModelFilter(eye_model_updaters[cam]->fitter().eye, eyes1, medianTotal, ignoreNewEye, originalModels[cam]);
-							if (eyes1.size() > 0 && eyes0.size() > 0) {
-/*								double left[3] = {
-									eye_model_updaters[cam]->fitter().eye.centre[0],
-									eye_model_updaters[cam]->fitter().eye.centre[1],
-									eye_model_updaters[cam]->fitter().eye.centre[2] };
-								double right[3] = {
-									eye_model_updaters[cam]->fitter().eye.centre[0],
-									eye_model_updaters[cam]->fitter().eye.centre[1],
-									eye_model_updaters[cam]->fitter().eye.centre[2] };
-								if (pupilFitter.getInterpupillaryDifference(left, right) > 5.5 &&
-									pupilFitter.getInterpupillaryDifference(left, right) < 6.9) {
-									cout << "BOOYEAH2 2 2 " << endl;
-									medianCircle = tempCircle;
-								}*/	
-								//cout << "dist 1: " << pupilFitter.getInterpupillaryDifference(cam0Sphere, cam1Sphere) << endl;
-								medianCircle = tempCircle;
-							}
-							else {
-								medianCircle = lastGoodEyes[cam];
+								medianCircle = lastGoodEyes[cam]; //otherwise use last known good eye model
 							}
 						}
-											    
+																	    
 						eye_model_updaters[cam]->render_status(img_rgb_debug);
 						lastGoodEyes[cam] = medianCircle;  //update last good eye (for possible use in next frame)
 						eye_model_updaters[cam]->setEye(medianCircle); //set eye model to 
-
+						
 						curr_circle = eye_model_updaters[cam]->unproject(img, el, inlier_pts);
 						// 3D pupil (relative to filtered eye model)
 						singleeyefitter::Ellipse2D<double> pupil_el(singleeyefitter::project(curr_circle, focal_length));
