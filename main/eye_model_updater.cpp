@@ -369,28 +369,32 @@ singleeyefitter::EyeModelFitter::Sphere EyeModelUpdater::eyeModelFilter(
 	int filterLength, 
 	bool ignoreNewEye,
 	singleeyefitter::EyeModelFitter::Sphere originalCalibratedEye) {
-		int max = filterLength; //max number of elements to average
+
+	int max = filterLength; //max number of elements to average
 		double radiiAverage = 0;
 		singleeyefitter::EyeModelFitter::Sphere filteredEyeModel;
 		singleeyefitter::EyeModelFitter::Sphere eyeTemp(eye);
 
 		float filterFactor = 5;
+
 		//check to see if new eye model is way different than originals and ignore if so
-		if (std::abs(eye.centre.x() - originalCalibratedEye.centre.x()) > filterFactor ||
+		if (ignoreNewEye == false && (
 			std::abs(eye.centre.x() - originalCalibratedEye.centre.x()) > filterFactor ||
-			std::abs(eye.centre.x() - originalCalibratedEye.centre.x()) > filterFactor) {
+			std::abs(eye.centre.x() - originalCalibratedEye.centre.x()) > filterFactor ||
+			std::abs(eye.centre.x() - originalCalibratedEye.centre.x()) > filterFactor)){
 			ignoreNewEye = true;
 		}
-
 
 		if (!ignoreNewEye) {
 			eyes.push_back(eyeTemp);//add the newest eye model to the vector 
 		}
+
 		//std::cout << "Adding x of : " + std::to_string(eyes[eyes.size()-1].centre(0)) << std::endl;
 		//std::cout << "raw radius: " << eyeTemp.radius << std::endl;
 		if (eyes.size() > max) {//remove oldest element if > max
 			eyes.erase(eyes.begin());
 		}
+
 		//temp arrays for sorting
 		std::vector<singleeyefitter::EyeModelFitter::Sphere> temp(eyes);
 		std::vector<double> xs; 
@@ -405,19 +409,26 @@ singleeyefitter::EyeModelFitter::Sphere EyeModelUpdater::eyeModelFilter(
 			radii.push_back(eyes[i].radius);
 			radiiAverage += eyes[i].radius / temp.size();
 		}
-
+		
 		//sort each coordinate and radii
 		std::sort(xs.begin(), xs.begin() + xs.size());
 		std::sort(ys.begin(), ys.begin() + ys.size());
 		std::sort(zs.begin(), zs.begin() + zs.size());
 		std::sort(radii.begin(), radii.begin() + radii.size());
-
+				
 		//set return sphere to median values
-		filteredEyeModel.centre[0] = xs[(int)xs.size() / 2];
-		filteredEyeModel.centre[1] = ys[(int)ys.size() / 2];
-		filteredEyeModel.centre[2] = zs[(int)zs.size() / 2];
-		filteredEyeModel.radius = radiiAverage;// radii[(int)radii.size() / 2];
-
+		if (xs.size() > 0) {
+			filteredEyeModel.centre[0] = xs[(int)xs.size() / 2];
+			filteredEyeModel.centre[1] = ys[(int)ys.size() / 2];
+			filteredEyeModel.centre[2] = zs[(int)zs.size() / 2];
+			filteredEyeModel.radius = radiiAverage;// radii[(int)radii.size() / 2];
+		}
+		else {
+			filteredEyeModel.centre[0] = 1;
+			filteredEyeModel.centre[1] = 1;
+			filteredEyeModel.centre[2] = 1;
+			filteredEyeModel.radius = 1;// radii[(int)radii.size() / 2];
+		}
 		return filteredEyeModel;
 }
 
